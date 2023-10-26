@@ -1,8 +1,14 @@
 use clap::{Parser, ValueEnum};
+use lazy_static::lazy_static;
 use rand::{thread_rng, Rng};
+use regex::Regex;
+use std::fs;
 
-// TODO: Memorable
 // TODO: Strength
+
+lazy_static! {
+    static ref WORD_LIST: String = fs::read_to_string("./assets/eff_large_wordlist.txt").unwrap();
+}
 
 fn main() {
     let args = Args::parse();
@@ -19,7 +25,7 @@ fn main() {
 struct Args {
     /// Password length
     #[arg(default_value_t = 16)]
-    length: u8,
+    length: usize,
 
     /// Password type
     #[arg(
@@ -29,7 +35,7 @@ struct Args {
         value_enum,
         default_value_t
     )]
-    p_type: PasswordType,
+    p_type: Password,
 
     /// Include numbers
     #[arg(short = 'n', long)]
@@ -45,28 +51,31 @@ struct Args {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Default)]
-enum PasswordType {
+enum Password {
     #[default]
     Random,
     Pin,
     Memorable,
 }
 
-impl PasswordType {
+impl Password {
     #[allow(unused)]
-    fn gen_pass(&self, len: u8, nums: bool, symbols: bool, caps: bool) -> String {
+    fn gen_pass(&self, len: usize, nums: bool, symbols: bool, caps: bool) -> String {
         let mut rng = thread_rng();
         let upper_case: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         let lower_case: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
         let digits: &[u8] = b"0123456789";
         let special: &[u8] = b"!\"#$%&'*+,./:;=?@\\^`|~";
-        // let minus = "-";
 
         let mut alphabet: Vec<u8> = match self {
-            PasswordType::Random => lower_case.into(),
-            PasswordType::Pin => digits.into(),
-            // TODO: memorable
-            _ => vec![],
+            Self::Random => lower_case.into(),
+            Self::Pin => digits.into(),
+            Self::Memorable => {
+                return (0..len)
+                    .map(|_| Self::gen_phrase())
+                    .collect::<Vec<String>>()
+                    .join("-")
+            }
         };
 
         if self == &Self::Random {
@@ -81,8 +90,6 @@ impl PasswordType {
             }
         }
 
-        dbg!(&std::str::from_utf8(&alphabet));
-
         let password: String = (0..len as usize)
             .map(|_| {
                 let idx = rng.gen_range(0..alphabet.len());
@@ -91,5 +98,28 @@ impl PasswordType {
             .collect();
 
         password
+    }
+
+    /// Picks a random phrase using the EFF's dice word list
+    /// https://www.eff.org/dice
+    fn gen_phrase() -> String {
+        let idx: String = (0..5)
+            .map(|_| char::from_digit(Self::roll_dice() as u32, 10).unwrap())
+            .collect::<Vec<char>>()
+            .iter()
+            .collect();
+
+        let re = Regex::new(&format!(r"(?m)^{idx}\s(?<phrase>\w+)$")).unwrap();
+
+        if let Some(caps) = re.captures(&WORD_LIST) {
+            return caps["phrase"].to_string();
+        };
+
+        String::default()
+    }
+
+    fn roll_dice() -> u8 {
+        let mut rng = rand::thread_rng();
+        rng.gen_range(1..=6)
     }
 }
