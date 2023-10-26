@@ -4,19 +4,18 @@ use rand::{thread_rng, Rng};
 use regex::Regex;
 use std::fs;
 
-// TODO: Strength
-
 lazy_static! {
     static ref WORD_LIST: String = fs::read_to_string("./assets/eff_large_wordlist.txt").unwrap();
 }
 
 fn main() {
     let args = Args::parse();
-    let out = args
-        .p_type
-        .gen_pass(args.length, args.numbers, args.symbols, args.caps);
+    let (password, entropy) =
+        args.p_type
+            .gen_pass(args.length, args.numbers, args.symbols, args.caps);
 
-    println!("{out}");
+    println!("{password}");
+    eprintln!("{entropy}");
 }
 
 /// A random password generator
@@ -59,8 +58,8 @@ enum Password {
 }
 
 impl Password {
-    #[allow(unused)]
-    fn gen_pass(&self, len: usize, nums: bool, symbols: bool, caps: bool) -> String {
+    /// Generates password based on the type.
+    fn gen_pass(&self, len: usize, nums: bool, symbols: bool, caps: bool) -> (String, f64) {
         let mut rng = thread_rng();
         let upper_case: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         let lower_case: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
@@ -71,10 +70,13 @@ impl Password {
             Self::Random => lower_case.into(),
             Self::Pin => digits.into(),
             Self::Memorable => {
-                return (0..len)
+                let password = (0..len)
                     .map(|_| Self::gen_phrase())
                     .collect::<Vec<String>>()
-                    .join("-")
+                    .join("-");
+
+                let strength = Self::entropy(lower_case.len() + 1, password.len());
+                return (password, strength);
             }
         };
 
@@ -97,7 +99,13 @@ impl Password {
             })
             .collect();
 
-        password
+        let pl = f64::powf(alphabet.len() as f64, password.len() as f64);
+
+        dbg!(&pl);
+
+        let strength = Self::entropy(alphabet.len(), password.len());
+
+        (password, strength)
     }
 
     /// Picks a random phrase using the EFF's dice word list
@@ -118,8 +126,14 @@ impl Password {
         String::default()
     }
 
+    /// Simulates dice roll
     fn roll_dice() -> u8 {
         let mut rng = rand::thread_rng();
         rng.gen_range(1..=6)
+    }
+
+    /// Calculate entropy of a password based on log2(symbols^length)
+    fn entropy(possible_symboles: usize, length: usize) -> f64 {
+        f64::log2(f64::powf(possible_symboles as f64, length as f64))
     }
 }
