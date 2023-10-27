@@ -1,5 +1,6 @@
 use clap::{Parser, ValueEnum};
 use lazy_static::lazy_static;
+use owo_colors::OwoColorize;
 use rand::{thread_rng, Rng};
 use regex::Regex;
 use std::fs;
@@ -14,8 +15,8 @@ fn main() {
         args.p_type
             .gen_pass(args.length, args.numbers, args.symbols, args.caps);
 
-    println!("{password}");
-    eprintln!("{entropy}");
+    println!("{}", password.green());
+    eprintln!("{}", entropy.yellow());
 }
 
 /// A random password generator
