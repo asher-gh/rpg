@@ -134,3 +134,46 @@ impl Password {
         f64::log2(f64::powf(possible_symboles as f64, length as f64))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_password_length() {
+        for len in 0..50 {
+            // RANDOM
+            let pw = Password::Random;
+
+            // test length for all flag options
+            for i in 0..8 {
+                let mut x = i;
+
+                let a: &[bool] = &(0..3)
+                    .map(|_| {
+                        let y = x & 1;
+                        x >>= 1;
+                        y == 1
+                    })
+                    .collect::<Vec<bool>>();
+
+                let (password, _) = pw.gen_pass(len, a[0], a[1], a[2]);
+                assert_eq!(password.len(), len);
+            }
+
+            // PIN
+            let pw = Password::Pin;
+            let (password, _) = pw.gen_pass(len, false, false, false); // flagless
+            assert_eq!(password.len(), len);
+
+            // MEMORABLE
+            let pw = Password::Memorable;
+            let (password, _) = pw.gen_pass(len, false, false, false); // flagless
+            if len == 0 {
+                assert_eq!(password.len(), len);
+            } else {
+                let words: Vec<&str> = password.split("-").collect();
+                assert_eq!(words.len(), len);
+            }
+        }
+    }
+}
