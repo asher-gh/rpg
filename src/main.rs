@@ -99,7 +99,6 @@ impl Password {
             })
             .collect();
 
-        let pl = f64::powf(alphabet.len() as f64, password.len() as f64);
         let strength = Self::entropy(alphabet.len(), password.len());
 
         (password, strength)
