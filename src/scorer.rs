@@ -1,32 +1,5 @@
-// https://www.uic.edu/apps/strong-password/
-// ----------------------------- Bonuses ------------------------------
-// | Rule                                 | Type      | Rate          |
-// | ------------------------------------ | --------- | ------------- |
-// | Length                               | Flat      | +(n*4)        |
-// | Uppercase letters                    | Cond/Incr | +((len-n)*2)  |
-// | Lowercase letters                    | Cond/Incr | +((len-n)*2)  |
-// | Numbers                              | Cond      | +(n*4)        |
-// | Symbols                              | Flat      | +(n*6)        |
-// | Middle numbers or symbols            | Flat      | +(n*2)        |
-// | Requirements                         | Flat      | +(n*2)        |
-// ---------------------------- Penalties -----------------------------
-// | Rule                                 | Type      | Rate          |
-// | ------------------------------------ | --------- | ------------- |
-// | Letters only                         | Flat      | -n            |
-// | Numbers only                         | Flat      | -n            |
-// | Repeat Characters (case insensitive) | Comp      | -             |
-// | Consecutive uppercase letters        | Flat      | -(n*2)        |
-// | Consecutive lowercase letters        | Flat      | -(n*2)        |
-// | Consecutive numbers                  | Flat      | -(n*2)        |
-// | Sequential letters (3+)              | Flat      | -(n*3)        |
-// | Sequential numbers (3+)              | Flat      | -(n*3)        |
-// | Sequential symbols (3+)              | Flat      | -(n*3)        |
-// --------------------------------------------------------------------
-//
-
-#![allow(unused)]
-
 #[derive(Default)]
+#[allow(unused)]
 pub struct AnalyzedPW {
     password: String,
     length: usize,
@@ -67,9 +40,10 @@ impl AnalyzedPW {
             mut seq_symbols,
             ..
         } = AnalyzedPW::default();
-        let length = pw.len();
-        let (mut n_repeat_char, mut n_unique_char) = (0usize, 0usize);
 
+        let length = pw.len();
+        let mut n_repeat_char = 0usize;
+        let mut n_unique_char: usize;
         let mut prev_char: Option<char> = None;
 
         for (i, c) in pw.chars().enumerate() {
@@ -114,7 +88,7 @@ impl AnalyzedPW {
                 let prv = prv.to_ascii_lowercase();
                 let c = c.to_ascii_lowercase();
 
-                if c as u8 - prv as u8 == 1 {
+                if c as i32 - prv as i32 == 1 {
                     match c {
                         'a'..='z' => seq_letters += if seq_letters == 0 { 2 } else { 1 },
                         '0'..='9' => seq_numbers += if seq_numbers == 0 { 2 } else { 1 },
@@ -192,8 +166,89 @@ impl AnalyzedPW {
         }
     }
 
-    pub fn score(&self) -> f64 {
-        todo!()
+    pub fn score(&self) -> usize {
+        let Self {
+            password: _,
+            length,
+            uppercase,
+            lowercase,
+            numbers,
+            symbols,
+            middle_nums_symbols,
+            requirements,
+            letters_only,
+            numbers_only,
+            repeat_chars_penalty,
+            cnsctv_uppercase,
+            cnsctv_lowercase,
+            cnsctv_numbers,
+            seq_letters,
+            seq_numbers,
+            seq_symbols,
+        } = self;
+
+        // https://www.uic.edu/apps/strong-password/
+        // ----------------------------- Bonuses ------------------------------
+        // | Rule                                 | Type      | Rate          |
+        // | ------------------------------------ | --------- | ------------- |
+        // | Length                               | Flat      | +(n*4)        |
+        // | Uppercase letters                    | Cond/Incr | +((len-n)*2)  |
+        // | Lowercase letters                    | Cond/Incr | +((len-n)*2)  |
+        // | Numbers                              | Cond      | +(n*4)        |
+        // | Symbols                              | Flat      | +(n*6)        |
+        // | Middle numbers or symbols            | Flat      | +(n*2)        |
+        // | Requirements                         | Flat      | +(n*2)        |
+        // ---------------------------- Penalties -----------------------------
+        // | Rule                                 | Type      | Rate          |
+        // | ------------------------------------ | --------- | ------------- |
+        // | Letters only                         | Flat      | -n            |
+        // | Numbers only                         | Flat      | -n            |
+        // | Repeat Characters (case insensitive) | Comp      | -             |
+        // | Consecutive uppercase letters        | Flat      | -(n*2)        |
+        // | Consecutive lowercase letters        | Flat      | -(n*2)        |
+        // | Consecutive numbers                  | Flat      | -(n*2)        |
+        // | Sequential letters (3+)              | Flat      | -(n*3)        |
+        // | Sequential numbers (3+)              | Flat      | -(n*3)        |
+        // | Sequential symbols (3+)              | Flat      | -(n*3)        |
+        // --------------------------------------------------------------------
+
+        let score = (length * 4)
+            + (if *uppercase > 0 && *lowercase > 0 {
+                ((*length - *uppercase) * 2) + ((*length - *lowercase) * 2)
+            } else {
+                0
+            })
+            + (numbers * 4)
+            + (symbols * 6)
+            + (middle_nums_symbols * 2)
+            + (requirements * 2)
+                .saturating_sub(if *letters_only { *length } else { 0 })
+                .saturating_sub(if *numbers_only { *length } else { 0 })
+                .saturating_sub(*repeat_chars_penalty)
+                .saturating_sub(cnsctv_numbers * 2)
+                .saturating_sub(cnsctv_lowercase * 2)
+                .saturating_sub(cnsctv_uppercase * 2)
+                .saturating_sub(if *seq_letters >= 3 {
+                    (*seq_letters - 2) * 2
+                } else {
+                    0
+                })
+                .saturating_sub(if *seq_numbers >= 3 {
+                    (*seq_numbers - 2) * 2
+                } else {
+                    0
+                })
+                .saturating_sub(if *seq_symbols >= 3 {
+                    (*seq_symbols - 2) * 2
+                } else {
+                    0
+                });
+
+        if score > 100 {
+            100
+        } else {
+            score
+        }
     }
 }
 

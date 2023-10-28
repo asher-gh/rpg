@@ -15,9 +15,10 @@ pub enum Password {
     Memorable,
 }
 
+#[allow(unused)]
 impl Password {
     /// Generates password based on the type.
-    pub fn gen_pass(&self, len: usize, nums: bool, symbols: bool, caps: bool) -> (String, f64) {
+    pub fn gen_pass(&self, len: usize, nums: bool, symbols: bool, caps: bool) -> String {
         let mut rng = thread_rng();
         let upper_case: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         let lower_case: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
@@ -28,13 +29,10 @@ impl Password {
             Self::Random => lower_case.into(),
             Self::Pin => digits.into(),
             Self::Memorable => {
-                let password = (0..len)
+                return (0..len)
                     .map(|_| Self::gen_phrase())
                     .collect::<Vec<String>>()
                     .join("-");
-
-                let strength = Self::entropy(lower_case.len() + 1, password.len());
-                return (password, strength);
             }
         };
 
@@ -57,9 +55,10 @@ impl Password {
             })
             .collect();
 
-        let strength = Self::entropy(alphabet.len(), password.len());
+        // let strength = Self::entropy(alphabet.len(), password.len());
 
-        (password, strength)
+        // (password, strength)
+        password
     }
 
     /// Picks a random phrase using the EFF's dice word list
@@ -87,7 +86,7 @@ impl Password {
     }
 
     /// Calculate entropy of a password based on log2(symbols^length)
-    fn entropy(possible_symboles: usize, length: usize) -> f64 {
+    pub fn entropy(possible_symboles: usize, length: usize) -> f64 {
         f64::log2(f64::powf(possible_symboles as f64, length as f64))
     }
 }
@@ -113,18 +112,18 @@ mod tests {
                     })
                     .collect::<Vec<bool>>();
 
-                let (password, _) = pw.gen_pass(len, a[0], a[1], a[2]);
+                let password = pw.gen_pass(len, a[0], a[1], a[2]);
                 assert_eq!(password.len(), len);
             }
 
             // PIN
             let pw = Password::Pin;
-            let (password, _) = pw.gen_pass(len, false, false, false); // flagless
+            let password = pw.gen_pass(len, false, false, false); // flagless
             assert_eq!(password.len(), len);
 
             // MEMORABLE
             let pw = Password::Memorable;
-            let (password, _) = pw.gen_pass(len, false, false, false); // flagless
+            let password = pw.gen_pass(len, false, false, false); // flagless
             if len == 0 {
                 assert_eq!(password.len(), len);
             } else {

@@ -2,17 +2,21 @@ use clap::Parser;
 use owo_colors::OwoColorize;
 use pass::Password;
 
+use crate::scorer::AnalyzedPW;
+
 mod pass;
 mod scorer;
 
 fn main() {
     let args = Args::parse();
-    let (password, entropy) =
-        args.p_type
-            .gen_pass(args.length, args.numbers, args.symbols, args.caps);
+    let password = args
+        .p_type
+        .gen_pass(args.length, args.numbers, args.symbols, args.caps);
 
-    println!("{}", password.green());
-    eprintln!("{}", entropy.yellow());
+    let strength = AnalyzedPW::new(password.clone());
+
+    println!("Password: {}", password.green());
+    eprintln!("Strength: {}", format!("{}%", strength.score()).yellow());
 }
 
 /// A random password generator
