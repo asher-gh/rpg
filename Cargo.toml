@@ -1,12 +1,12 @@
 [package]
+authors = ["Asher <ashish.2017@hotmail.com>"]
 name = "rpg"
 version = "0.1.0"
 edition = "2021"
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "4.4.7", features = ["derive"] }
+clap = { version = "4.4.7", features = ["derive", "cargo"] }
 lazy_static = "1.4.0"
 owo-colors = "3.5.0"
 rand = "0.8.5"

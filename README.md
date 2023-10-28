@@ -1,18 +1,29 @@
 # RPG: Random Password Generator
 
 ```bash
+rpg 0.1.0
+Asher <ashish.2017@hotmail.com>
+A random password generator and strength estimator
+
 Usage: rpg [OPTIONS] [LENGTH]
 
 Arguments:
-[LENGTH] Password length [default: 16]
+  [LENGTH]
+          Password length [default: 16]
 
 Options:
--p, --password-type <TYPE> Password type [default: random] [possible values: random, pin, memorable]
--n, --numbers Include numbers
--s, --symbols Include special symbols
--c, --caps Include capitalized letters
--h, --help Print help
--V, --version Print version
+  -p, --password-type <TYPE>
+          Password type [default: random] [possible values: random, pin, memorable]
+  -n, --numbers
+          Include numbers
+  -s, --symbols
+          Include special symbols
+  -c, --caps
+          Include capitalized letters
+  -h, --help
+          Print help
+  -V, --version
+          Print version
 ```
 
 ## Examples
@@ -21,8 +32,8 @@ Generate a 10 character random password
 
 ```bash
 $ rpg 10
-rbfflarczr
-47.00439718141092
+Password: tpaincwigd
+Strength: 40%
 ```
 
 Generate a 10 character random password with numbers and special
@@ -30,24 +41,24 @@ characters
 
 ```bash
 $ rpg 10 -ns
-/0shf*;yi|
-58.57980995127572
+Password: .`ck?7\1=*
+Strength: 100%
 ```
 
 Generate an 8 digit pin
 
 ```bash
 rpg 8 -p pin
-50803803
-26.575424759098897
+Password: 10877492
+Strength: 76%
 ```
 
 Generate a 5 word memorable pass phrase
 
 ```bash
 rpg 5 -p memorable
-hubcap-client-pushy-reawake-emphases
-171.17595007788486
+Password: gondola-crudely-canister-player-unbalance
+Strength: 100%
 ```
 
 # Password strength

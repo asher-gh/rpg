@@ -19,9 +19,22 @@ fn main() {
     eprintln!("Strength: {}", format!("{}%", strength.score()).yellow());
 }
 
-/// A random password generator
+/// A random password generator and strength estimator.
 #[derive(Parser)]
-#[command(author, version, about, arg_required_else_help = true)]
+#[command(
+    author,
+    version,
+    about,
+    arg_required_else_help = true,
+    next_line_help = true,
+    help_template = "\
+{before-help}{name} {version}
+{author-with-newline}{about-with-newline}
+{usage-heading} {usage}
+
+{all-args}{after-help}
+"
+)]
 struct Args {
     /// Password length
     #[arg(default_value_t = 16)]
