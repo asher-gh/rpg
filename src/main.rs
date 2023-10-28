@@ -3,6 +3,7 @@ use owo_colors::OwoColorize;
 use pass::Password;
 
 mod pass;
+mod scorer;
 
 fn main() {
     let args = Args::parse();
