@@ -1,7 +1,5 @@
 # RPG: Random Password Generator
 
-Generate a random password and calculate the password's entropy.
-
 ```bash
 Usage: rpg [OPTIONS] [LENGTH]
 
@@ -17,7 +15,7 @@ Options:
 -V, --version Print version
 ```
 
-## Random
+## Examples
 
 Generate a 10 character random password
 
@@ -52,7 +50,7 @@ hubcap-client-pushy-reawake-emphases
 171.17595007788486
 ```
 
-# Password Score
+# Password strength
 
 The password strength is estimated with a score of 0 to 100, using the
 following rules.
