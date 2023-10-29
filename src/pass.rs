@@ -55,9 +55,6 @@ impl Password {
             })
             .collect();
 
-        // let strength = Self::entropy(alphabet.len(), password.len());
-
-        // (password, strength)
         password
     }
 
@@ -79,13 +76,13 @@ impl Password {
         String::default()
     }
 
-    /// Simulates dice roll
+    /// Simulates a dice roll
     fn roll_dice() -> u8 {
         let mut rng = rand::thread_rng();
         rng.gen_range(1..=6)
     }
 
-    /// Calculate entropy of a password based on log2(symbols^length)
+    /// Calculates entropy of a password based on log2(symbols^length)
     pub fn entropy(possible_symboles: usize, length: usize) -> f64 {
         f64::log2(f64::powf(possible_symboles as f64, length as f64))
     }
