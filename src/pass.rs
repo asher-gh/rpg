@@ -1,11 +1,12 @@
 use clap::ValueEnum;
-use lazy_static::lazy_static;
 use rand::{thread_rng, Rng};
 use regex::Regex;
-use std::fs;
-lazy_static! {
-    static ref WORD_LIST: String = fs::read_to_string("./assets/eff_large_wordlist.txt").unwrap();
-}
+
+// lazy_static! {
+//     static ref WORD_LIST: String = fs::read_to_string("./assets/eff_large_wordlist.txt").unwrap();
+// }
+
+const WORD_LIST: &str = include_str!("../assets/eff_large_wordlist.txt");
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Default)]
 pub enum Password {
