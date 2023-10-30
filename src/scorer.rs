@@ -1,4 +1,4 @@
-#[derive(Default)]
+#[derive(Default, Debug)]
 #[allow(unused)]
 pub struct AnalyzedPW {
     password: String,
@@ -212,37 +212,41 @@ impl AnalyzedPW {
         // | Sequential symbols (3+)              | Flat      | -(n*3)        |
         // --------------------------------------------------------------------
 
-        let score = (length * 4)
+        let score = ((length * 4)
             + (if *uppercase > 0 && *lowercase > 0 {
                 ((*length - *uppercase) * 2) + ((*length - *lowercase) * 2)
             } else {
                 0
             })
-            + (numbers * 4)
+            + (if numbers == length { 0 } else { numbers * 4 })
             + (symbols * 6)
             + (middle_nums_symbols * 2)
-            + (requirements * 2)
-                .saturating_sub(if *letters_only { *length } else { 0 })
-                .saturating_sub(if *numbers_only { *length } else { 0 })
-                .saturating_sub(*repeat_chars_penalty)
-                .saturating_sub(cnsctv_numbers * 2)
-                .saturating_sub(cnsctv_lowercase * 2)
-                .saturating_sub(cnsctv_uppercase * 2)
-                .saturating_sub(if *seq_letters >= 3 {
-                    (*seq_letters - 2) * 2
-                } else {
-                    0
-                })
-                .saturating_sub(if *seq_numbers >= 3 {
-                    (*seq_numbers - 2) * 2
-                } else {
-                    0
-                })
-                .saturating_sub(if *seq_symbols >= 3 {
-                    (*seq_symbols - 2) * 2
-                } else {
-                    0
-                });
+            + (if *requirements < 5 {
+                0
+            } else {
+                requirements * 2
+            }))
+        .saturating_sub(if *letters_only { *length } else { 0 })
+        .saturating_sub(if *numbers_only { *length } else { 0 })
+        .saturating_sub(*repeat_chars_penalty)
+        .saturating_sub(cnsctv_numbers * 2)
+        .saturating_sub(cnsctv_lowercase * 2)
+        .saturating_sub(cnsctv_uppercase * 2)
+        .saturating_sub(if *seq_letters >= 3 {
+            (*seq_letters - 2) * 3
+        } else {
+            0
+        })
+        .saturating_sub(if *seq_numbers >= 3 {
+            (*seq_numbers - 2) * 3
+        } else {
+            0
+        })
+        .saturating_sub(if *seq_symbols >= 3 {
+            (*seq_symbols - 2) * 3
+        } else {
+            0
+        });
 
         if score > 100 {
             100
@@ -300,5 +304,11 @@ mod tests {
             assert_eq!(expected.seq_numbers, got.seq_numbers);
             assert_eq!(expected.seq_symbols, got.seq_symbols);
         }
+    }
+
+    #[test]
+    fn strength() {
+        let apw = AnalyzedPW::new(String::from("123456"));
+        assert_eq!(4, apw.score());
     }
 }
